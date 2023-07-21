@@ -57,6 +57,9 @@ coverage-badge = "*"
 pre-commit = "*"
 aiosqlite = "^0.18.0"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
