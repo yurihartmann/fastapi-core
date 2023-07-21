@@ -16,15 +16,12 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
-        id: test
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          # Issue ref: https://github.com/actions/setup-python/issues/436
-          # cache: "pip"
-          # cache-dependency-path: pyproject.toml
-      - uses: actions/cache@v3
+
       - name: Install Poetry
         run: pip install poetry
       - name: Install Dependencies
