@@ -1,0 +1,62 @@
+[tool.poetry]
+name = "fastapi-core"
+version = "0.0.1"
+description = "Reusable core, repositories and utilities for FastAPI in Ecred Platform"
+authors = ["yuri hartmann <yurihartmann@icloud.com>"]
+classifiers = [
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.10',
+]
+
+[tool.poetry.dependencies]
+# Python version
+python = "^3.10"
+
+# Dependencies required
+fastapi = "0.100.*"
+asyncio = "3.4.*"
+starlette-context = "0.3.*"
+greenlet = { version = "^2.0.2", optional = true }
+psycopg2-binary = { version = "^2.9.6", optional = true }
+
+
+# HTTP Clients
+httpx = "0.24.*"
+
+# Drivers
+redis = { version = "4.6.*", optional = true }
+
+# ORM
+alembic = { version = "1.11.*"}
+sqlmodel = { version = "0.0.8" }
+
+# Async Database
+fastapi-pagination = "^0.12.6"
+dependency-injector = "^4.41.0"
+loguru = "^0.7.0"
+
+[tool.poetry.extras]
+database = ["psycopg2-binary", "greenlet", "alembic", "sqlmodel"]
+redis = ["redis"]
+
+
+# Tests
+[tool.poetry.dev-dependencies]
+coverage = "*"
+pytest = "*"
+pytest-cov = "*"
+faker = "*"
+mkdocs = "*"
+mkdocs-material = "*"
+fakeredis = "*"
+twine = "*"
+flake8 = "*"
+coverage-badge = "*"
+pre-commit = "*"
+aiosqlite = "^0.18.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
