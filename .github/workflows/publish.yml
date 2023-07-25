@@ -47,16 +47,16 @@ jobs:
         poetry config pypi-token.test-pypi ${{ secrets.POETRY_PYPI_TOKEN_TEST_PYPI }}
         poetry publish -r test-pypi --skip-existing
 
-    - name: ✏️ Create Pre-release
-      if: ${{ github.ref == 'refs/heads/release' }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ env.VERSION }}-rc.${{ github.sha }}
-      run: |
-        gh release create "$tag" \
-            --repo="$GITHUB_REPOSITORY" \
-            --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-            --generate-notes --prerelease
+#    - name: ✏️ Create Pre-release
+#      if: ${{ github.ref == 'refs/heads/release' }}
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        tag: ${{ env.VERSION }}-rc.${{ github.sha }}
+#      run: |
+#        gh release create "$tag" \
+#            --repo="$GITHUB_REPOSITORY" \
+#            --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+#            --generate-notes --prerelease
 
     # PyPI poetry config pypi-token.pypi pypi-XXXXXXXX
 #    - name: 🟢 Publish to PyPI
