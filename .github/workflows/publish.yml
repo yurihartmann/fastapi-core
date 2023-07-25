@@ -40,15 +40,14 @@ jobs:
 
     - name: ✏️ Create Pre-release
       if: ${{ github.ref == 'refs/heads/release' }}
-      uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ env.VERSION }}-rc.${{ github.sha }}
-        release_name: Pre-release ${{ vars.VERSION }}-rc.${{ github.sha }}
-        body: Pre-release
-        draft: false
-        prerelease: true
+        tag: ${{ env.VERSION }}-rc.${{ github.sha }}
+      run: |
+        gh release create "$tag" \
+            --repo="$GITHUB_REPOSITORY" \
+            --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+            --generate-notes --prerelease
 
     # PyPI
     - name: 🟢 Publish to PyPI
