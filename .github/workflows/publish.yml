@@ -27,8 +27,10 @@ jobs:
     - name: ⚙️ Build library
       run: poetry build
 
-    - name: ⚙️ Set Version
-      run: export VERSION=$(echo "$(poetry version)" | cut -d ' ' -f 2)
+    - name: ⚙️ Set Version Variable
+      run: |
+        VER=$(echo "$(poetry version)" | cut -d ' ' -f 2)
+        echo "VERSION=$VER" >> $GITHUB_ENV
 
     # TestPyPI
     - name: 🔵 Publish to Test PyPI
