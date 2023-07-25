@@ -33,15 +33,6 @@ jobs:
         echo "VERSION=$VER" >> $GITHUB_ENV
 
     # TestPyPI
-    - name: 🔵 Publish to Test PyPI
-      if: ${{ github.ref == 'refs/heads/release' }}
-      env:
-        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.POETRY_PYPI_TOKEN_TEST_PYPI }}
-      run: |
-        poetry config repositories.testpypi https://test.pypi.org/legacy/
-        poetry publish
-
-#    # TestPyPI
 #    - name: 🔵 Publish to Test PyPI
 #      if: ${{ github.ref == 'refs/heads/release' }}
 #      env:
@@ -49,21 +40,37 @@ jobs:
 #        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
 #      run: twine upload --skip-existing -r testpypi dist/*
 
-#    - name: ✏️ Create Pre-release
-#      if: ${{ github.ref == 'refs/heads/release' }}
-#      env:
-#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        tag: ${{ env.VERSION }}-rc.${{ github.sha }}
-#      run: |
-#        gh release create "$tag" \
-#            --repo="$GITHUB_REPOSITORY" \
-#            --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-#            --generate-notes --prerelease
+    - name: 🔵 Publish to Test PyPI
+      if: ${{ github.ref == 'refs/heads/release' }}
+      run: |
+        poetry config repositories.test-pypi https://test.pypi.org/legacy/
+        poetry config pypi-token.test-pypi ${{ secrets.POETRY_PYPI_TOKEN_TEST_PYPI }}
+        poetry publish -r test-pypi
 
-    # PyPI
+    - name: ✏️ Create Pre-release
+      if: ${{ github.ref == 'refs/heads/release' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ env.VERSION }}-rc.${{ github.sha }}
+      run: |
+        gh release create "$tag" \
+            --repo="$GITHUB_REPOSITORY" \
+            --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+            --generate-notes --prerelease
+
+    # PyPI poetry config pypi-token.pypi pypi-XXXXXXXX
 #    - name: 🟢 Publish to PyPI
 #      if: ${{ github.ref == 'refs/heads/main' }}
 #      env:
 #        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
 #        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 #      run: twine upload dist/*
+
+    - name: 🟢 Publish to PyPI
+      if: ${{ github.ref == 'refs/heads/main' }}
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        poetry config pypi-token.pypi ${{ secrets.POETRY_PYPI_TOKEN_PYPI }}
+        poetry publish
