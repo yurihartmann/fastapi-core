@@ -36,7 +36,7 @@ jobs:
     - name: 🔵 Publish to Test PyPI
       if: ${{ github.ref == 'refs/heads/release' }}
       env:
-        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.TEST_PYPI_USERNAME }}
+        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.POETRY_PYPI_TOKEN_TEST_PYPI }}
       run: |
         poetry config repositories.testpypi https://test.pypi.org/legacy/
         poetry publish
