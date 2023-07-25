@@ -45,7 +45,7 @@ jobs:
       run: |
         poetry config repositories.test-pypi https://test.pypi.org/legacy/
         poetry config pypi-token.test-pypi ${{ secrets.POETRY_PYPI_TOKEN_TEST_PYPI }}
-        poetry publish -r test-pypi
+        poetry publish -r test-pypi --skip-existing
 
     - name: ✏️ Create Pre-release
       if: ${{ github.ref == 'refs/heads/release' }}
