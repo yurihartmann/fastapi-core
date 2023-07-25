@@ -27,12 +27,30 @@ jobs:
     - name: ⚙️ Build library
       run: poetry build
 
+    - name: ⚙️ Set Version
+      run: export VERSION=$(echo "$(poetry version)" | cut -d ' ' -f 2)
+
+    # TestPyPI
     - name: 🔵 Publish to Test PyPI
+      if: ${{ github.ref == 'refs/heads/release' }}
       env:
         TWINE_USERNAME: ${{ secrets.TEST_PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
       run: twine upload --skip-existing -r testpypi dist/*
 
+    - name: ✏️ Create Pre-release
+      if: ${{ github.ref == 'refs/heads/release' }}
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ vars.VERSION }}-rc.${{ github.sha }}
+        release_name: Pre-release ${{ vars.VERSION }}-rc.${{ github.sha }}
+        body: Pre-release
+        draft: false
+        prerelease: true
+
+    # PyPI
     - name: 🟢 Publish to PyPI
       if: ${{ github.ref == 'refs/heads/main' }}
       env:
