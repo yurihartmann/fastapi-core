@@ -44,7 +44,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ vars.VERSION }}-rc.${{ github.sha }}
+        tag_name: ${{ env.VERSION }}-rc.${{ github.sha }}
         release_name: Pre-release ${{ vars.VERSION }}-rc.${{ github.sha }}
         body: Pre-release
         draft: false
