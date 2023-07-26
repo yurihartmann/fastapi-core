@@ -1,7 +1,8 @@
-from fastapi import FastAPI, APIRouter
+from dependency_injector.containers import Container
+from fastapi import APIRouter, FastAPI
+from loguru import logger
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
-from dependency_injector.containers import Container
 from starlette.responses import JSONResponse
 from starlette_context import plugins
 from starlette_context.middleware import RawContextMiddleware
@@ -10,7 +11,6 @@ from starlette_context.plugins import Plugin
 from fastapi_core.app_settings import AppSettings
 from fastapi_core.middleware import AppMiddleware
 from fastapi_core.middleware.plugins import HeadersPlugin
-from loguru import logger
 from fastapi_core.utils.exceptions import InternalErrorSchema
 
 
@@ -35,7 +35,7 @@ class CreateAppConfig(BaseModel):
     version: str = "0.1.0"
     container: Container = None
     features: Features = Features()
-    context_plugins: tuple[Plugin] = tuple()
+    context_plugins: tuple[Plugin] = ()
     # dependencies: List[ApplicationDependenciesABC] = None,
 
 
@@ -85,7 +85,9 @@ def fast_api_create_app(
 
     # include app_router with response and base path
     app.include_router(
-        router=app_router, prefix=create_app_config.base_path, responses={500: {"model": InternalErrorSchema}}
+        router=app_router,
+        prefix=create_app_config.base_path,
+        responses={500: {"model": InternalErrorSchema}},
     )
 
     # Add container in app

@@ -26,7 +26,10 @@ class AppMiddleware(BaseHTTPMiddleware):
         except Exception:
             logger.exception("Error in Application")
 
-            response = JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content=InternalErrorSchema().dict())
+            response = JSONResponse(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                content=InternalErrorSchema().dict(),
+            )
             self.add_access_control_allow_origin(response=response)
 
             return response
