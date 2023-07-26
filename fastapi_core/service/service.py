@@ -1,6 +1,4 @@
-from abc import ABC
-
-from fastapi_pagination import Params, Page
+from fastapi_pagination import Page, Params
 from sqlmodel import SQLModel
 
 from fastapi_core.model import ModelMixin
@@ -8,7 +6,7 @@ from fastapi_core.repository import RepositoryABC
 from fastapi_core.utils.exceptions import EntityNotFoundException
 
 
-class Service(ABC):
+class Service:
     def __init__(self, repository: RepositoryABC, pk_field: any):
         self.repository = repository
         self.pk_field = pk_field

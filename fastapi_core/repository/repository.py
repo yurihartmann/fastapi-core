@@ -2,10 +2,11 @@ from abc import ABC
 from typing import Callable
 
 from fastapi.encoders import jsonable_encoder
-from fastapi_pagination import Params, Page
+from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlmodel import paginate
-from sqlalchemy.orm import subqueryload, joinedload
-from sqlmodel import Session, select, desc as descending, func, SQLModel
+from sqlalchemy.orm import joinedload, subqueryload
+from sqlmodel import Session, SQLModel, func, select
+from sqlmodel import desc as descending
 from sqlmodel.sql.expression import SelectOfScalar
 
 from fastapi_core.repository.repository_abc import RepositoryABC
@@ -116,7 +117,11 @@ class Repository(RepositoryABC, ABC):
             return paginate(session=session, query=query, params=params)
 
     async def find_all_by_filters(
-        self, filters: dict = None, order_by: str = None, desc: bool = False, relationship_to_load: list[str] = None
+        self,
+        filters: dict = None,
+        order_by: str = None,
+        desc: bool = False,
+        relationship_to_load: list[str] = None,
     ) -> list[SQLModel]:
         """
         This method make query using params, filters, order and desc applied

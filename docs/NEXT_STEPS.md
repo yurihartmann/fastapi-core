@@ -4,6 +4,8 @@
 - [x] Database Connection
 - [x] Pagination
 - [x] FastAPI runner
+- [x] Ruff
+- [ ] Unittests
 - [ ] Talker (integrations with APIs) with Circuit Breaker
 - [ ] Migration Router
 - [ ] HealthCheck Router
