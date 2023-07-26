@@ -1,6 +1,6 @@
-from typing import Union, Optional, Any
+from typing import Any, Optional, Union
 
-from starlette.requests import Request, HTTPConnection
+from starlette.requests import HTTPConnection, Request
 from starlette_context.plugins.base import Plugin
 
 

@@ -50,15 +50,42 @@ pytest-cov = "*"
 faker = "*"
 mkdocs = "*"
 mkdocs-material = "*"
-fakeredis = "*"
-twine = "*"
-flake8 = "*"
+#fakeredis = "*"
 coverage-badge = "*"
 pre-commit = "*"
-aiosqlite = "^0.18.0"
+#aiosqlite = "^0.18.0"
+ruff = "^0.0.280"
 
-[tool.poetry.group.publish.dependencies]
-twine = "^4.0.2"
+[tool.ruff]
+fix = true
+line-length = 120
+src = ["fastapi_core", "tests"]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401", "F403"]
+
+[tool.black]
+line-length = 120
+
+[tool.pytest.ini_options]
+addopts = "-p no:warnings --cov=fastapi_core/ --cov-report=term --cov-report=html"
+testpaths = ['tests']
+
+[tool.coverage.run]
+omit = ['*/__init__.py', 'exceptions.py', 'app_settings.py']
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
