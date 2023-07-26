@@ -51,7 +51,7 @@ class Database(SessionProvided):
         return self._connections[DatabaseRole.MASTER]
 
     def get_read_only_session(self) -> Session:
-        return self._connections[DatabaseRole.MASTER]
+        return self._connections[DatabaseRole.REAL_ONLY]
 
     # async def readiness(self) -> bool:
     #     try:

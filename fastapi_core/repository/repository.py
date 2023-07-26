@@ -9,7 +9,7 @@ from sqlmodel import Session, SQLModel, func, select
 from sqlmodel import desc as descending
 from sqlmodel.sql.expression import SelectOfScalar
 
-from fastapi_core.repository.repository_abc import RepositoryABC
+from fastapi_core.repository.repository_abc import Model, RepositoryABC
 
 
 class Repository(RepositoryABC, ABC):
@@ -53,13 +53,13 @@ class Repository(RepositoryABC, ABC):
 
         return filters
 
-    async def find_one_by_filters(
+    async def find_one(
         self,
         filters: dict[str, any] = None,
         order_by: str = None,
         desc: bool = False,
         relationship_to_load: list[str] = None,
-    ) -> SQLModel | None:
+    ) -> Model | None:
         """
         This method make query using params, filters
         :param filters:
@@ -80,14 +80,14 @@ class Repository(RepositoryABC, ABC):
 
             return session.scalar(query)
 
-    async def find_by_filters_paginated(
+    async def find_paginated(
         self,
         params: Params = Params(),
         filters: dict = None,
         order_by: str = None,
         desc: bool = False,
         relationship_to_load: list[str] = None,
-    ) -> Page[SQLModel]:
+    ) -> Page[Model]:
         """
         This method make query using params, filters, order and desc applied
         :param params: The obj Params (page and size)
@@ -116,13 +116,13 @@ class Repository(RepositoryABC, ABC):
 
             return paginate(session=session, query=query, params=params)
 
-    async def find_all_by_filters(
+    async def find_all(
         self,
         filters: dict = None,
         order_by: str = None,
         desc: bool = False,
         relationship_to_load: list[str] = None,
-    ) -> list[SQLModel]:
+    ) -> list[Model]:
         """
         This method make query using params, filters, order and desc applied
         :param filters: A dict with filters, example {'id': 1, 'name': 'foo'}
@@ -153,9 +153,9 @@ class Repository(RepositoryABC, ABC):
         """
         with self.session_factory() as session:
             query = select([func.count()]).select_from(self.model).filter_by(**filters)
-            return session.scalar(query).first()
+            return session.scalar(query)
 
-    async def count_by_filters(self, filters: dict = None) -> int:
+    async def count(self, filters: dict = None) -> int:
         """
         This method count items with filters
         :param filters: A dict with filters, example {'id': 1, 'name': 'foo'}
@@ -180,7 +180,7 @@ class Repository(RepositoryABC, ABC):
         payload = jsonable_encoder(obj)
         return self.model(**payload)
 
-    async def create(self, obj: dict[str, any] | SQLModel) -> SQLModel:
+    async def create(self, obj: dict[str, any] | SQLModel) -> Model:
         """
         This method create object in database
         :param obj: The BaseModel with field and data or dict of data
@@ -193,7 +193,7 @@ class Repository(RepositoryABC, ABC):
             session.refresh(new_obj)
             return new_obj
 
-    async def bulk_create(self, objs: list[dict[str, any] | SQLModel]) -> list[SQLModel]:
+    async def bulk_create(self, objs: list[dict[str, any] | SQLModel]) -> list[Model]:
         """
         This method create objects in database
         :param objs:
@@ -212,7 +212,7 @@ class Repository(RepositoryABC, ABC):
             return new_objs
 
     @classmethod
-    def __update_obj(cls, obj: SQLModel, update_values: dict[str, any] | SQLModel = None) -> SQLModel:
+    def __update_obj(cls, obj: SQLModel, update_values: dict[str, any] | SQLModel = None) -> Model:
         if isinstance(obj, SQLModel) and update_values is None:
             return obj
 
@@ -229,7 +229,7 @@ class Repository(RepositoryABC, ABC):
 
         return obj
 
-    async def update(self, obj: SQLModel, update_values: dict[str, any] | SQLModel = None) -> SQLModel:
+    async def update(self, obj: SQLModel, update_values: dict[str, any] | SQLModel = None) -> Model:
         """
         This method update the model in database
         :param obj: The Model in a database
@@ -244,7 +244,7 @@ class Repository(RepositoryABC, ABC):
             session.refresh(obj_to_save)
             return obj_to_save
 
-    async def bulk_update(self, objs: list[SQLModel]) -> list[SQLModel]:
+    async def bulk_update(self, objs: list[SQLModel]) -> list[Model]:
         """
         This method update the models in database
         :param objs:

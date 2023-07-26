@@ -12,14 +12,14 @@ class Service:
         self.pk_field = pk_field
 
     async def get_by_pk(self, pk: any, raise_exception_that_not_exist: bool = True) -> ModelMixin | SQLModel:
-        if obj := await self.repository.find_one_by_filters(filters={self.pk_field: pk}):
+        if obj := await self.repository.find_one(filters={self.pk_field: pk}):
             return obj
 
         if raise_exception_that_not_exist:
             raise EntityNotFoundException
 
     async def get_paginated(self, params: Params, filters: dict = None) -> Page:
-        return await self.repository.find_by_filters_paginated(params=params, filters=filters)
+        return await self.repository.find_paginated(params=params, filters=filters)
 
     async def create(self, obj: SQLModel) -> SQLModel:
         return await self.repository.create(obj=obj)

@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import TypeVar
 
 from fastapi_pagination import Page, Params
 from sqlmodel import SQLModel
 from sqlmodel.sql.expression import SelectOfScalar
+
+Model = TypeVar('Model', bound=SQLModel)
 
 
 class RepositoryABC(ABC):
@@ -19,54 +22,54 @@ class RepositoryABC(ABC):
         """Not Implemented"""
 
     @abstractmethod
-    async def find_one_by_filters(
+    async def find_one(
         self,
         filters: dict[str, any] = None,
         order_by: str = None,
         desc: bool = False,
         relationship_to_load: list[str] = None,
-    ) -> SQLModel | None:
+    ) -> Model | None:
         """Not Implemented"""
 
     @abstractmethod
-    async def find_by_filters_paginated(
+    async def find_paginated(
         self,
         params: Params = Params(),
         filters: dict = None,
         order_by: str = None,
         desc: bool = False,
         relationship_to_load: list[str] = None,
-    ) -> Page[SQLModel]:
+    ) -> Page[Model]:
         """Not Implemented"""
 
     @abstractmethod
-    async def find_all_by_filters(
+    async def find_all(
         self,
         filters: dict = None,
         order_by: str = None,
         desc: bool = False,
         relationship_to_load: list[str] = None,
-    ) -> list[SQLModel]:
+    ) -> list[Model]:
         """Not Implemented"""
 
     @abstractmethod
-    async def count_by_filters(self, filters: dict = None) -> int:
+    async def count(self, filters: dict = None) -> int:
         """Not Implemented"""
 
     @abstractmethod
-    async def create(self, obj: dict[str, any] | SQLModel) -> SQLModel:
+    async def create(self, obj: dict[str, any] | SQLModel) -> Model:
         """Not Implemented"""
 
     @abstractmethod
-    async def bulk_create(self, objs: list[dict[str, any] | SQLModel]) -> list[SQLModel]:
+    async def bulk_create(self, objs: list[dict[str, any] | SQLModel]) -> list[Model]:
         """Not Implemented"""
 
     @abstractmethod
-    async def update(self, obj: SQLModel, update_values: dict[str, any] | SQLModel = None) -> SQLModel:
+    async def update(self, obj: SQLModel, update_values: dict[str, any] | SQLModel = None) -> Model:
         """Not Implemented"""
 
     @abstractmethod
-    async def bulk_update(self, objs: list[SQLModel]) -> list[SQLModel]:
+    async def bulk_update(self, objs: list[SQLModel]) -> list[Model]:
         """Not Implemented"""
 
     @abstractmethod
