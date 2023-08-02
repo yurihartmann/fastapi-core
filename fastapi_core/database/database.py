@@ -1,10 +1,14 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 from enum import Enum
+from typing import AsyncGenerator, AsyncIterator
 
 from loguru import logger
-from sqlmodel import Session, create_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.pool import NullPool
+
+from fastapi_core.utils.app_dependencies_abc import AppDependenciesABC
 
 
 class DatabaseRole(str, Enum):
@@ -12,15 +16,15 @@ class DatabaseRole(str, Enum):
     REAL_ONLY = "read_only"
 
 
-class SessionProvided(ABC):
-    @abstractmethod
-    def get_session_factory(self, read_only: bool = False) -> Session:
-        """Not Implemented"""
+# class SessionProvidedABC(ABC):
+#     @abstractmethod
+#     async def get_async_session_factory(self, read_only: bool = False) -> AsyncSession:
+#         """Not Implemented"""
 
 
-class Database(SessionProvided):
-    provided: SessionProvided
-    _connections: dict[DatabaseRole, Session] = defaultdict(lambda: {})
+class Database(AppDependenciesABC):
+    # provided: SessionProvidedABC
+    _connections: dict[DatabaseRole, AsyncEngine] = defaultdict(lambda: {})
 
     def __init__(
         self,
@@ -42,45 +46,78 @@ class Database(SessionProvided):
                 *args, db_url=db_url_read_only, echo_queries=echo_queries, **kwargs
             )
 
+        self.is_ready()
+
     @classmethod
-    def __init_engine(cls, db_url: str, echo_queries: bool, *args, **kwargs) -> Session:
-        engine = create_engine(*args, db_url, echo=echo_queries, future=True, pool_pre_ping=True, **kwargs)
-        return Session(bind=engine, expire_on_commit=False)
+    def __init_engine(cls, db_url: str, echo_queries: bool, *args, **kwargs) -> AsyncEngine:
+        return create_async_engine(
+            *args,
+            db_url,
+            echo=echo_queries,
+            future=True,
+            pool_pre_ping=True,
+            poolclass=NullPool,
+            **kwargs,
+        )
 
-    def get_master_session(self) -> Session:
-        return self._connections[DatabaseRole.MASTER]
+    @classmethod
+    def __init_async_session(cls, bind: AsyncEngine) -> AsyncSession:
+        return AsyncSession(
+            bind=bind,
+            expire_on_commit=False,
+        )
 
-    def get_read_only_session(self) -> Session:
-        return self._connections[DatabaseRole.REAL_ONLY]
+    def __has_read_only(self) -> bool:
+        if self._connections.get(DatabaseRole.REAL_ONLY):
+            return True
+        return False
 
-    # async def readiness(self) -> bool:
-    #     try:
-    #         await self.master_async_session.execute("SELECT 1;")
-    #
-    #         if self.read_only_async_session:
-    #             await self.read_only_async_session.execute("SELECT 1;")
-    #
-    #         return True
-    #
-    #     except Exception:
-    #         traceback.print_exc()
-    #         return False
+    def get_master_session(self) -> AsyncSession:
+        return self.__init_async_session(self._connections[DatabaseRole.MASTER])
 
-    @contextmanager
-    def get_session_factory(self, read_only: bool = False) -> Session:
-        session: Session = self._connections[DatabaseRole.MASTER]
+    def get_read_only_session(self) -> AsyncSession | None:
+        if self.__has_read_only():
+            return self.__init_async_session(self._connections[DatabaseRole.REAL_ONLY])
+        return None
 
-        if read_only and self._connections.get(DatabaseRole.REAL_ONLY):
-            session = self._connections[DatabaseRole.REAL_ONLY]
+    @asynccontextmanager
+    async def get_async_session_factory(self, read_only: bool = False) -> AsyncGenerator[AsyncSession]:
+        # """
+        # Get AsyncSession in async context manager
+        # :param read_only:
+        # :return:  AsyncSession
+        # """
+        async_session = self.__init_async_session(
+            bind=(
+                self._connections[DatabaseRole.REAL_ONLY]
+                if read_only and self.__has_read_only()
+                else self._connections[DatabaseRole.MASTER]
+            )
+        )
 
         try:
-            yield session
+            yield async_session
         except Exception:
-            logger.error("Error in Session - Executing rollback because of exception")
-            session.rollback()
+            logger.exception("Error in Database.AsyncSession | Executing rollback ...")
+            await async_session.rollback()
             raise
         finally:
-            session.close()
+            await async_session.close()
+
+    async def is_ready(self) -> bool:
+        try:
+            async_session = self.get_master_session()
+            await async_session.execute("SELECT 1;")
+
+            async_session_read_only = self.get_read_only_session()
+            if async_session_read_only:
+                await async_session_read_only.execute("SELECT 1;")
+
+            return True
+
+        except Exception:
+            logger.exception("Error in AsyncDatabase.is_ready")
+            return False
 
     def __str__(self):
         return "Database"

@@ -53,9 +53,9 @@ mkdocs-material = "*"
 #fakeredis = "*"
 coverage-badge = "*"
 pre-commit = "*"
-#aiosqlite = "^0.18.0"
 ruff = "^0.0.280"
 black = "^23.7.0"
+aiosqlite = "^0.19.0"
 
 [tool.ruff]
 fix = true
@@ -81,9 +81,9 @@ ignore = [
 [tool.black]
 line-length = 120
 
-[tool.pytest.ini_options]
-addopts = "-p no:warnings --cov=fastapi_core/ --cov-report=term --cov-report=html"
-testpaths = ['tests']
+#[tool.pytest.ini_options]
+#addopts = "-p no:warnings --cov=fastapi_core/ --cov-report=term --cov-report=html"
+#testpaths = ['tests']
 
 [tool.coverage.run]
 omit = ['*/__init__.py', 'exceptions.py', 'app_settings.py']

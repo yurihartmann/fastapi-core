@@ -1,11 +1,12 @@
 from abc import ABC
-from typing import Callable
+from typing import Callable, AsyncGenerator, AsyncIterator
 
 from fastapi.encoders import jsonable_encoder
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlmodel import paginate
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, subqueryload
-from sqlmodel import Session, SQLModel, func, select
+from sqlmodel import SQLModel, func, select
 from sqlmodel import desc as descending
 from sqlmodel.sql.expression import SelectOfScalar
 
@@ -13,7 +14,7 @@ from fastapi_core.repository.repository_abc import Model, RepositoryABC
 
 
 class Repository(RepositoryABC, ABC):
-    def __init__(self, session_factory: Callable[..., Session], model: type[SQLModel]):
+    def __init__(self, session_factory: Callable[..., AsyncSession], model: type[SQLModel]):
         """
         The constructor received the session and the model of repository
         :param session_factory: The session of SQLModel or sqlalchemy
@@ -68,7 +69,7 @@ class Repository(RepositoryABC, ABC):
         :param relationship_to_load:
         :return: The object ModelType | None
         """
-        with self.session_factory() as session:
+        async with self.session_factory() as session:
             filters = self._sanitize_filters_from_model(filters=filters) if filters else {}
             query = select(self.model).filter_by(**filters)
 
