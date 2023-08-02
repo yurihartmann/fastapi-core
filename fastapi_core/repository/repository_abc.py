@@ -5,7 +5,7 @@ from fastapi_pagination import Page, Params
 from sqlmodel import SQLModel
 from sqlmodel.sql.expression import SelectOfScalar
 
-Model = TypeVar('Model', bound=SQLModel)
+Model = TypeVar("Model", bound=SQLModel)
 
 
 class RepositoryABC(ABC):
