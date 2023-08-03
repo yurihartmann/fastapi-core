@@ -1,5 +1,5 @@
 <p align="center">
-  <a href=""><img src="docs/assets/logo.png" alt="FastAPI"></a>
+  <a href=""><img src="docs/assets/logo-full.png" alt="FastAPI"></a>
 </p>
 <p align="center">
     <em>FastAPI Core is <b>Reusable core</b>, <b>repositories</b> and <b>utilities</b> for FastAPI + SQLModel</em>
