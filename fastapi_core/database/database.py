@@ -1,8 +1,7 @@
-from abc import ABC, abstractmethod
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from enum import Enum
-from typing import AsyncGenerator, AsyncIterator
+from typing import Callable, AsyncContextManager
 
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
@@ -16,14 +15,7 @@ class DatabaseRole(str, Enum):
     REAL_ONLY = "read_only"
 
 
-# class SessionProvidedABC(ABC):
-#     @abstractmethod
-#     async def get_async_session_factory(self, read_only: bool = False) -> AsyncSession:
-#         """Not Implemented"""
-
-
 class Database(AppDependenciesABC):
-    # provided: SessionProvidedABC
     _connections: dict[DatabaseRole, AsyncEngine] = defaultdict(lambda: {})
 
     def __init__(
@@ -81,7 +73,7 @@ class Database(AppDependenciesABC):
         return None
 
     @asynccontextmanager
-    async def get_async_session_factory(self, read_only: bool = False) -> AsyncGenerator[AsyncSession]:
+    async def get_async_session_factory(self, read_only: bool = False) -> Callable[..., AsyncContextManager[AsyncSession]]:
         # """
         # Get AsyncSession in async context manager
         # :param read_only:

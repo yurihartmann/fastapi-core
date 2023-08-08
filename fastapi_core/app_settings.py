@@ -1,7 +1,13 @@
 from pydantic import BaseSettings, Field, validator
 
+from platform_core.utils import SingletonMeta
 
-class AppSettings(BaseSettings):
+
+class Settings(BaseSettings, metaclass=SingletonMeta):
+    ...
+
+
+class AppSettings(Settings):
     ENVIRONMENT: str = Field(default="local", env="ENVIRONMENT")
 
     @validator("ENVIRONMENT")
@@ -23,7 +29,7 @@ class AppSettings(BaseSettings):
         return self.ENVIRONMENT == "prd"
 
 
-class DatabaseSettings(BaseSettings):
+class DatabaseSettings(Settings):
     DB_HOST: str = Field(..., env="DB_HOST")
     DB_READ_ONLY_HOST: str = Field(default=None, env="DB_READ_ONLY_HOST")
     DB_USER: str = Field(..., env="DB_USER")

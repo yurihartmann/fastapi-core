@@ -6,7 +6,7 @@
 - [x] FastAPI runner
 - [x] Ruff
 - [ ] Unittests
-- [ ] Talker (integrations with APIs) with Circuit Breaker
+- [X] Talker (integrations with APIs)
 - [ ] Migration Router
 - [ ] HealthCheck Router
 - [ ] Render Doc Router
