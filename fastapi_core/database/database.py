@@ -1,13 +1,21 @@
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from enum import Enum
-from typing import Callable, AsyncContextManager
 
 from loguru import logger
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from fastapi_core.utils.app_dependencies_abc import AppDependenciesABC
+
+
+class AsyncSessionManager:
+    def __init__(self, read_only: bool = False):
+        ...
+
+    async def __aenter__(self) -> AsyncSession:
+        ...
 
 
 class DatabaseRole(str, Enum):
@@ -17,14 +25,15 @@ class DatabaseRole(str, Enum):
 
 class Database(AppDependenciesABC):
     _connections: dict[DatabaseRole, AsyncEngine] = defaultdict(lambda: {})
+    IS_READY_STATEMENT = text('SELECT 1')
 
     def __init__(
-        self,
-        db_url: str,
-        db_url_read_only: str = None,
-        echo_queries: bool = False,
-        *args,
-        **kwargs,
+            self,
+            db_url: str,
+            db_url_read_only: str = None,
+            echo_queries: bool = False,
+            *args,
+            **kwargs,
     ) -> None:
         logger.info("Starting database...")
         logger.info(f"Connecting in {DatabaseRole.MASTER}...")
@@ -73,7 +82,7 @@ class Database(AppDependenciesABC):
         return None
 
     @asynccontextmanager
-    async def get_async_session_factory(self, read_only: bool = False) -> Callable[..., AsyncContextManager[AsyncSession]]:
+    async def factory_async_session_manager(self, read_only: bool = False) -> type[AsyncSessionManager]:
         # """
         # Get AsyncSession in async context manager
         # :param read_only:
@@ -98,12 +107,11 @@ class Database(AppDependenciesABC):
 
     async def is_ready(self) -> bool:
         try:
-            async_session = self.get_master_session()
-            await async_session.execute("SELECT 1;")
+            async with self.factory_async_session_manager() as session:
+                await session.scalar(self.IS_READY_STATEMENT)
 
-            async_session_read_only = self.get_read_only_session()
-            if async_session_read_only:
-                await async_session_read_only.execute("SELECT 1;")
+            async with self.factory_async_session_manager(read_only=True) as session:
+                await session.scalar(self.IS_READY_STATEMENT)
 
             return True
 

@@ -11,8 +11,8 @@ faker = Faker()
 
 
 class HeroRepository(Repository):
-    def __init__(self, session_factory):
-        super().__init__(session_factory, model=Hero)
+    def __init__(self, async_session_manager):
+        super().__init__(async_session_manager, model=Hero)
 
 
 class TestRepository(unittest.IsolatedAsyncioTestCase):
@@ -21,7 +21,7 @@ class TestRepository(unittest.IsolatedAsyncioTestCase):
 
         SQLModel.metadata.create_all(bind=self.database.get_master_session().bind)
 
-        self.repo = HeroRepository(session_factory=self.database.get_session_factory)
+        self.repo = HeroRepository(async_session_manager=self.database.get_session_factory)
 
     def create_heroes(self, n: int = 3) -> list[Hero]:
         with self.database.get_session_factory() as session:

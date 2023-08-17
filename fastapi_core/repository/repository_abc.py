@@ -9,6 +9,7 @@ Model = TypeVar("Model", bound=SQLModel)
 
 
 class RepositoryABC(ABC):
+
     @abstractmethod
     def _add_subquery_load(self, query: SelectOfScalar, keys_subquery_load: list[str]) -> SelectOfScalar:
         """Not Implemented"""

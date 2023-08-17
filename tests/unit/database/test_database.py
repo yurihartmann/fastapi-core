@@ -53,7 +53,7 @@ class TestDatabase(unittest.IsolatedAsyncioTestCase):
 
         # Act and Assert
         with self.assertRaises(Exception) as _:
-            async with db_full.get_async_session_factory() as session:
+            async with db_full.factory_async_session_manager() as session:
                 await session.delete()
                 raise Exception
 

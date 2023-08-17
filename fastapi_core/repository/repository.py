@@ -1,27 +1,26 @@
 import asyncio
 from abc import ABC
-from typing import Callable, AsyncContextManager
 
 from fastapi.encoders import jsonable_encoder
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlmodel import paginate
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, subqueryload
 from sqlmodel import SQLModel, func, select
 from sqlmodel import desc as descending
 from sqlmodel.sql.expression import SelectOfScalar
 
+from fastapi_core.database import AsyncSessionManager
 from fastapi_core.repository.repository_abc import Model, RepositoryABC
 
 
 class Repository(RepositoryABC, ABC):
-    def __init__(self, session_factory: Callable[..., AsyncContextManager[AsyncSession]], model: type[SQLModel]):
+    def __init__(self, async_session_manager: type[AsyncSessionManager], model: type[SQLModel]):
         """
         The constructor received the session and the model of repository
-        :param session_factory: The session of SQLModel or sqlalchemy
+        :param async_session_manager: The session of SQLModel or sqlalchemy
         :param model: The model of repository, example: UserModel, ItemModel
         """
-        self.session_factory = session_factory
+        self.async_session_manager = async_session_manager
         self.model = model
 
     def _add_subquery_load(self, query: SelectOfScalar, keys_subquery_load: list[str]) -> SelectOfScalar:
@@ -70,7 +69,7 @@ class Repository(RepositoryABC, ABC):
         :param relationship_to_load:
         :return: The object ModelType | None
         """
-        async with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             filters = self._sanitize_filters_from_model(filters=filters) if filters else {}
             query = select(self.model).filter_by(**filters)
 
@@ -104,7 +103,7 @@ class Repository(RepositoryABC, ABC):
         if not isinstance(params, Params):
             raise ValueError(f"params should be a Params obj, received {type(params)}")
 
-        async with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             filters = self._sanitize_filters_from_model(filters=filters) if filters else {}
 
             query = select(self.model)
@@ -133,7 +132,7 @@ class Repository(RepositoryABC, ABC):
         :param relationship_to_load:
         :return: Return a list of Models
         """
-        async with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             filters = self._sanitize_filters_from_model(filters=filters) if filters else {}
             query = select(self.model)
 
@@ -154,7 +153,7 @@ class Repository(RepositoryABC, ABC):
         :param filters:
         :return: int
         """
-        async with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             query = select([func.count()]).select_from(self.model).filter_by(**filters)
             return await session.scalar(query)
 
@@ -190,7 +189,7 @@ class Repository(RepositoryABC, ABC):
         :return: The Model created
         """
         new_obj = self.__create_new_obj(obj=obj)
-        async with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             session.add(new_obj)
             await session.commit()
             await session.refresh(new_obj)
@@ -203,7 +202,7 @@ class Repository(RepositoryABC, ABC):
         :return:
         """
         new_objs = [self.__create_new_obj(obj=obj) for obj in objs]
-        async with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             for new_obj in new_objs:
                 session.add(new_obj)
 
@@ -241,7 +240,7 @@ class Repository(RepositoryABC, ABC):
         :return: The Model updated
         """
         obj_to_update = self.__update_obj(obj=obj, update_values=update_values)
-        async with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             obj_to_save = await session.merge(obj_to_update)
             session.add(obj_to_save)
             await session.commit()
@@ -255,7 +254,7 @@ class Repository(RepositoryABC, ABC):
         :return:
         """
         objs_to_update = [self.__update_obj(obj=obj) for obj in objs]
-        async with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             objs_to_save = await asyncio.gather(*[
                 session.merge(new_obj) for new_obj in objs_to_update
             ])
@@ -277,7 +276,7 @@ class Repository(RepositoryABC, ABC):
         :param obj: The Model that will be deleted
         :return: The result of commit
         """
-        async with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             await session.delete(obj)
             await session.commit()
 
@@ -290,7 +289,7 @@ class Repository(RepositoryABC, ABC):
         if not objs:
             return
 
-        async with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             await asyncio.gather(*[
                 session.delete(obj) for obj in objs
             ])

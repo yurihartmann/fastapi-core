@@ -17,6 +17,7 @@ from fastapi_core.utils.exceptions import InternalErrorSchema
 class Features(BaseModel):
     migration_route: bool = False
     health_route: bool = False
+    cache_router: bool = False
 
     def init_features(self, app: FastAPI):
         pass

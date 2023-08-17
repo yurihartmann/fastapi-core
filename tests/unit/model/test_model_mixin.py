@@ -19,7 +19,7 @@ class TestModelBase(unittest.IsolatedAsyncioTestCase):
 
         SQLModel.metadata.create_all(bind=self.database.get_master_session().bind)
 
-        self.repo = Repository(session_factory=self.database.get_session_factory, model=MyModel)
+        self.repo = Repository(async_session_manager=self.database.get_session_factory, model=MyModel)
 
     async def test_model_created(self):
         # Arrange
