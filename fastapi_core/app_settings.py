@@ -1,9 +1,9 @@
 from pydantic import BaseSettings, Field, validator
 
-from platform_core.utils import SingletonMeta
+from fastapi_core.utils import SingletonMeta
 
 
-class Settings(BaseSettings, metaclass=SingletonMeta):
+class Settings(BaseSettings):
     ...
 
 
@@ -40,5 +40,8 @@ class DatabaseSettings(Settings):
     def get_mysql_db_url(self):
         return f"mysql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
-    def get_postgres_sync_db_url(self):
-        return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+    def get_postgres_async_db_url(self, read_only: bool = False):
+        if read_only:
+            return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_READ_ONLY_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
+        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

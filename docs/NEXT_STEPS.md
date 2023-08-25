@@ -14,3 +14,5 @@
 - [ ] Authentication
 - [ ] Worker Manager
 - [x] CSV Exporter
+- [ ] trace open telemetri
+- [ ] render, static para docs, api example

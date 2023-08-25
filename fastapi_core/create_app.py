@@ -54,6 +54,14 @@ def fast_api_create_app(
         redoc_url=f"{create_app_config.base_path}/redoc",
     )
 
+    # Redirect in local
+    if AppSettings().is_local():
+        from fastapi.responses import RedirectResponse
+
+        @app.get(path='/', response_class=RedirectResponse, include_in_schema=False)
+        async def redirect():
+            return app.docs_url
+
     # Allow CORS
     app.add_middleware(
         CORSMiddleware,
