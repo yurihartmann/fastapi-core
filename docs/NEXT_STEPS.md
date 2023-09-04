@@ -5,14 +5,10 @@
 - [x] Pagination
 - [x] FastAPI runner
 - [x] Ruff
-- [ ] Unittests
 - [X] Talker (integrations with APIs)
-- [ ] Migration Router
+- [X] Migration Router
 - [ ] HealthCheck Router
-- [ ] Render Doc Router
-- [ ] Cache Drivers
-- [ ] Authentication
-- [ ] Worker Manager
+- [X] Cache Drivers
 - [x] CSV Exporter
 - [ ] trace open telemetri
-- [ ] render, static para docs, api example
+- [ ] Unittests

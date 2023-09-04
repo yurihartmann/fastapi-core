@@ -25,7 +25,7 @@ class DatabaseRole(str, Enum):
 
 class Database(AppDependenciesABC):
     _connections: dict[DatabaseRole, AsyncEngine] = defaultdict(lambda: {})
-    IS_READY_STATEMENT = text('SELECT 1')
+    IS_READY_STATEMENT = text("SELECT 1")
 
     def __init__(
             self,
@@ -46,8 +46,6 @@ class Database(AppDependenciesABC):
             self._connections[DatabaseRole.REAL_ONLY] = self.__init_engine(
                 *args, db_url=db_url_read_only, echo_queries=echo_queries, **kwargs
             )
-
-        self.is_ready()
 
     @classmethod
     def __init_engine(cls, db_url: str, echo_queries: bool, *args, **kwargs) -> AsyncEngine:

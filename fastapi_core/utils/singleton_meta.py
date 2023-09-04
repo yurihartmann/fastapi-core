@@ -18,12 +18,12 @@ class SingletonMeta(type):
         return cls._instances[cls]
 
 
-def Singleton(cls):
+def singleton(class_):
     instances = {}
 
-    def getinstance():
-        if cls not in instances:
-            instances[cls] = cls()
-        return instances[cls]
+    def getinstance(*args, **kwargs):
+        if class_ not in instances:
+            instances[class_] = class_(*args, **kwargs)
+        return instances[class_]
 
     return getinstance

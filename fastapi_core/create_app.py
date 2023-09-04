@@ -1,64 +1,54 @@
+from enum import Enum
+
 from dependency_injector.containers import Container
 from fastapi import APIRouter, FastAPI
 from loguru import logger
-from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from starlette_context import plugins
 from starlette_context.middleware import RawContextMiddleware
 from starlette_context.plugins import Plugin
 
-from fastapi_core.app_settings import AppSettings
 from fastapi_core.middleware import AppMiddleware
 from fastapi_core.middleware.plugins import HeadersPlugin
+from fastapi_core.orchestrators.dependencies_orchestrator import DependenciesOrchestrator
+from fastapi_core.routes.health.health_router import health_router
+from fastapi_core.routes.migrations.run_migrations_router import run_migrations_router
+from fastapi_core.settings import AppSettings
+from fastapi_core.utils.app_dependencies_abc import AppDependenciesABC
 from fastapi_core.utils.exceptions import InternalErrorSchema
 
 
-class Features(BaseModel):
-    migration_route: bool = False
-    health_route: bool = False
-    cache_router: bool = False
-
-    def init_features(self, app: FastAPI):
-        pass
-        # if self.migration_route:
-        #     app.include_router(migration_router)
-        # if self.health_route:
-        #     app.include_router(health_router)
-
-
-class CreateAppConfig(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-
-    title: str = "My App"
-    base_path: str = ""
-    version: str = "0.1.0"
-    container: Container = None
-    features: Features = Features()
-    context_plugins: tuple[Plugin] = ()
-    # dependencies: List[ApplicationDependenciesABC] = None,
+class HelperRoutersEnum(Enum):
+    migration = run_migrations_router
+    health_check = health_router
 
 
 def fast_api_create_app(
-    app_router: APIRouter,
-    create_app_config: CreateAppConfig = CreateAppConfig(),
+        app_router: APIRouter,
+        title: str = "My App",
+        base_path: str = "",
+        version: str = "0.1.0",
+        container: Container = None,
+        helper_routers: tuple[HelperRoutersEnum, ...] = (),
+        context_plugins: tuple[Plugin, ...] = (),
+        dependencies: tuple[AppDependenciesABC, ...] = (),
 ) -> FastAPI:
-    logger.info(f"Creating FastAPI app with config {create_app_config}")
+    logger.info(f"Creating FastAPI app ...")
     # Create FastAPI
     app = FastAPI(
-        title=create_app_config.title,
-        version=create_app_config.version,
-        openapi_url=f"{create_app_config.base_path}/openapi.json",
-        docs_url=f"{create_app_config.base_path}/docs",
-        redoc_url=f"{create_app_config.base_path}/redoc",
+        title=title,
+        version=version,
+        openapi_url=f"{base_path}/openapi.json",
+        docs_url=f"{base_path}/docs",
+        redoc_url=f"{base_path}/redoc",
     )
 
     # Redirect in local
     if AppSettings().is_local():
         from fastapi.responses import RedirectResponse
 
-        @app.get(path='/', response_class=RedirectResponse, include_in_schema=False)
+        @app.get(path="/", response_class=RedirectResponse, include_in_schema=False)
         async def redirect():
             return app.docs_url
 
@@ -85,27 +75,28 @@ def fast_api_create_app(
             plugins.RequestIdPlugin(),  # uuid
             plugins.CorrelationIdPlugin(),  # uuid
             HeadersPlugin(),  # Headers global
-            *create_app_config.context_plugins,
+            *context_plugins,
         ),
     )
-
-    # Init features
-    create_app_config.features.init_features(app)
 
     # include app_router with response and base path
     app.include_router(
         router=app_router,
-        prefix=create_app_config.base_path,
+        prefix=base_path,
         responses={500: {"model": InternalErrorSchema}},
     )
 
-    # Add container in app
-    if create_app_config.container:
-        app.container = create_app_config.container
+    # Helper Routers
+    for feature in helper_routers:
+        app.include_router(router=feature.value, prefix=base_path)
 
-    # # Register dependencies
-    # readiness_service = ReadinessService()
-    # for dependency in dependencies if dependencies else []:
-    #     readiness_service.add_dependency(dependency)
+    # Add container in app
+    if container:
+        app.container = container
+
+    # Register dependencies
+    readiness_service = DependenciesOrchestrator()
+    for dependency in dependencies:
+        readiness_service.add_dependency(dependency)
 
     return app

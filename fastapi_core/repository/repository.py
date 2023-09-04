@@ -145,7 +145,7 @@ class Repository(RepositoryABC, ABC):
                 query = query.order_by(descending(order_by)) if desc else query.order_by(order_by)
 
             scalar = await session.scalars(query)
-            return await scalar.unique().all()
+            return scalar.unique().all()
 
     async def __count_by_filters_query(self, filters: dict) -> int | None:
         """
@@ -208,9 +208,7 @@ class Repository(RepositoryABC, ABC):
 
             await session.commit()
 
-            await asyncio.gather(*[
-                session.refresh(new_obj) for new_obj in new_objs
-            ])
+            await asyncio.gather(*[session.refresh(new_obj) for new_obj in new_objs])
 
             return new_objs
 
@@ -255,18 +253,14 @@ class Repository(RepositoryABC, ABC):
         """
         objs_to_update = [self.__update_obj(obj=obj) for obj in objs]
         async with self.async_session_manager() as session:
-            objs_to_save = await asyncio.gather(*[
-                session.merge(new_obj) for new_obj in objs_to_update
-            ])
+            objs_to_save = await asyncio.gather(*[session.merge(new_obj) for new_obj in objs_to_update])
 
             for obj_to_save in objs_to_save:
                 session.add(obj_to_save)
 
             await session.commit()
 
-            await asyncio.gather(*[
-                session.refresh(new_obj) for new_obj in objs_to_save
-            ])
+            await asyncio.gather(*[session.refresh(new_obj) for new_obj in objs_to_save])
 
             return list(objs_to_save)
 
@@ -290,7 +284,5 @@ class Repository(RepositoryABC, ABC):
             return
 
         async with self.async_session_manager() as session:
-            await asyncio.gather(*[
-                session.delete(obj) for obj in objs
-            ])
+            await asyncio.gather(*[session.delete(obj) for obj in objs])
             await session.commit()
