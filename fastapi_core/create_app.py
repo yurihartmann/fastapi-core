@@ -25,14 +25,14 @@ class HelperRoutersEnum(Enum):
 
 
 def fast_api_create_app(
-        app_router: APIRouter,
-        title: str = "My App",
-        base_path: str = "",
-        version: str = "0.1.0",
-        container: Container = None,
-        helper_routers: tuple[HelperRoutersEnum, ...] = (),
-        context_plugins: tuple[Plugin, ...] = (),
-        dependencies: tuple[AppDependenciesABC, ...] = (),
+    app_router: APIRouter,
+    title: str = "My App",
+    base_path: str = "",
+    version: str = "0.1.0",
+    container: Container = None,
+    helper_routers: tuple[HelperRoutersEnum, ...] = (),
+    context_plugins: tuple[Plugin, ...] = (),
+    dependencies: tuple[AppDependenciesABC, ...] = (),
 ) -> FastAPI:
     logger.info(f"Creating FastAPI app ...")
     # Create FastAPI

@@ -9,7 +9,7 @@ from fastapi_core.utils.app_dependencies_abc import AppDependenciesABC
 
 class RedisCacheDriver(CacheDriverABC, AppDependenciesABC):
     def __init__(
-            self, host: str = "localhost", port: int = 6379, password: str | None = None, namespace_prefix: str = ""
+        self, host: str = "localhost", port: int = 6379, password: str | None = None, namespace_prefix: str = ""
     ):
         super().__init__(namespace_prefix=namespace_prefix)
         self.redis = redis.Redis(host=host, port=port, password=password)

@@ -28,12 +28,12 @@ class Database(AppDependenciesABC):
     IS_READY_STATEMENT = text("SELECT 1")
 
     def __init__(
-            self,
-            db_url: str,
-            db_url_read_only: str = None,
-            echo_queries: bool = False,
-            *args,
-            **kwargs,
+        self,
+        db_url: str,
+        db_url_read_only: str = None,
+        echo_queries: bool = False,
+        *args,
+        **kwargs,
     ) -> None:
         logger.info("Starting database...")
         logger.info(f"Connecting in {DatabaseRole.MASTER}...")

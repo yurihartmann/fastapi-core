@@ -20,7 +20,8 @@
 
 [//]: # (**Documentation**: <a href="https://fastapi.tiangolo.com" target="_blank">https://fastapi.tiangolo.com</a>)
 
-**Source Code**: <a href="https://github.com/yurihartmann/fastapi-core" target="_blank">https://github.com/yurihartmann/fastapi-core </a>
+**Source Code
+**: <a href="https://github.com/yurihartmann/fastapi-core" target="_blank">https://github.com/yurihartmann/fastapi-core </a>
 
 ---
 
@@ -32,7 +33,8 @@
 
 ---
 
-FastApi Core has a reusable core with dependencies injections, database connection, repositories, talkers, cache, buckets, queues, logger and more utils...
+FastApi Core has a reusable core with dependencies injections, database connection, repositories, talkers, cache,
+buckets, queues, logger and more utils...
 
 The key features are:
 
@@ -43,3 +45,10 @@ The key features are:
 * **Cache**: Abstract cache and implement for use
 * **Buckets**: Abstract buckets and implement for use
 * **Logger**: Logger simple by default
+
+## How use
+
+To see how use and example of service using FastApi Core go to this repository:
+
+**Fast Food API
+**: <a href="https://github.com/yurihartmann/fast-food-api" target="_blank">https://github.com/yurihartmann/fast-food-api </a>
