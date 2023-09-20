@@ -1,25 +1,26 @@
+import asyncio
 from abc import ABC
-from typing import Callable
 
 from fastapi.encoders import jsonable_encoder
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlalchemy.orm import joinedload, subqueryload
-from sqlmodel import Session, SQLModel, func, select
+from sqlmodel import SQLModel, func, select
 from sqlmodel import desc as descending
 from sqlmodel.sql.expression import SelectOfScalar
 
+from fastapi_core.database import AsyncSessionManager
 from fastapi_core.repository.repository_abc import Model, RepositoryABC
 
 
 class Repository(RepositoryABC, ABC):
-    def __init__(self, session_factory: Callable[..., Session], model: type[SQLModel]):
+    def __init__(self, async_session_manager: type[AsyncSessionManager], model: type[SQLModel]):
         """
         The constructor received the session and the model of repository
-        :param session_factory: The session of SQLModel or sqlalchemy
+        :param async_session_manager: The session of SQLModel or sqlalchemy
         :param model: The model of repository, example: UserModel, ItemModel
         """
-        self.session_factory = session_factory
+        self.async_session_manager = async_session_manager
         self.model = model
 
     def _add_subquery_load(self, query: SelectOfScalar, keys_subquery_load: list[str]) -> SelectOfScalar:
@@ -68,7 +69,7 @@ class Repository(RepositoryABC, ABC):
         :param relationship_to_load:
         :return: The object ModelType | None
         """
-        with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             filters = self._sanitize_filters_from_model(filters=filters) if filters else {}
             query = select(self.model).filter_by(**filters)
 
@@ -78,7 +79,7 @@ class Repository(RepositoryABC, ABC):
             if order_by and hasattr(self.model, order_by):
                 query = query.order_by(descending(order_by)) if desc else query.order_by(order_by)
 
-            return session.scalar(query)
+            return await session.scalar(query)
 
     async def find_paginated(
         self,
@@ -102,7 +103,7 @@ class Repository(RepositoryABC, ABC):
         if not isinstance(params, Params):
             raise ValueError(f"params should be a Params obj, received {type(params)}")
 
-        with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             filters = self._sanitize_filters_from_model(filters=filters) if filters else {}
 
             query = select(self.model)
@@ -114,7 +115,7 @@ class Repository(RepositoryABC, ABC):
             if order_by and hasattr(self.model, order_by):
                 query = query.order_by(descending(order_by)) if desc else query.order_by(order_by)
 
-            return paginate(session=session, query=query, params=params)
+            return await paginate(session=session, query=query, params=params)
 
     async def find_all(
         self,
@@ -131,7 +132,7 @@ class Repository(RepositoryABC, ABC):
         :param relationship_to_load:
         :return: Return a list of Models
         """
-        with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             filters = self._sanitize_filters_from_model(filters=filters) if filters else {}
             query = select(self.model)
 
@@ -143,7 +144,8 @@ class Repository(RepositoryABC, ABC):
             if order_by and hasattr(self.model, order_by):
                 query = query.order_by(descending(order_by)) if desc else query.order_by(order_by)
 
-            return session.scalars(query).unique().all()
+            scalar = await session.scalars(query)
+            return scalar.unique().all()
 
     async def __count_by_filters_query(self, filters: dict) -> int | None:
         """
@@ -151,9 +153,9 @@ class Repository(RepositoryABC, ABC):
         :param filters:
         :return: int
         """
-        with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             query = select([func.count()]).select_from(self.model).filter_by(**filters)
-            return session.scalar(query)
+            return await session.scalar(query)
 
     async def count(self, filters: dict = None) -> int:
         """
@@ -187,10 +189,10 @@ class Repository(RepositoryABC, ABC):
         :return: The Model created
         """
         new_obj = self.__create_new_obj(obj=obj)
-        with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             session.add(new_obj)
-            session.commit()
-            session.refresh(new_obj)
+            await session.commit()
+            await session.refresh(new_obj)
             return new_obj
 
     async def bulk_create(self, objs: list[dict[str, any] | SQLModel]) -> list[Model]:
@@ -200,14 +202,13 @@ class Repository(RepositoryABC, ABC):
         :return:
         """
         new_objs = [self.__create_new_obj(obj=obj) for obj in objs]
-        with self.session_factory() as session:
+        async with self.async_session_manager() as session:
             for new_obj in new_objs:
                 session.add(new_obj)
 
-            session.commit()
+            await session.commit()
 
-            for new_obj in new_objs:
-                session.refresh(new_obj)
+            await asyncio.gather(*[session.refresh(new_obj) for new_obj in new_objs])
 
             return new_objs
 
@@ -237,11 +238,11 @@ class Repository(RepositoryABC, ABC):
         :return: The Model updated
         """
         obj_to_update = self.__update_obj(obj=obj, update_values=update_values)
-        with self.session_factory() as session:
-            obj_to_save = session.merge(obj_to_update)
+        async with self.async_session_manager() as session:
+            obj_to_save = await session.merge(obj_to_update)
             session.add(obj_to_save)
-            session.commit()
-            session.refresh(obj_to_save)
+            await session.commit()
+            await session.refresh(obj_to_save)
             return obj_to_save
 
     async def bulk_update(self, objs: list[SQLModel]) -> list[Model]:
@@ -251,20 +252,17 @@ class Repository(RepositoryABC, ABC):
         :return:
         """
         objs_to_update = [self.__update_obj(obj=obj) for obj in objs]
-        with self.session_factory() as session:
-            objs_to_save = []
-            for obj_to_update in objs_to_update:
-                objs_to_save.append(session.merge(obj_to_update))
+        async with self.async_session_manager() as session:
+            objs_to_save = await asyncio.gather(*[session.merge(new_obj) for new_obj in objs_to_update])
 
             for obj_to_save in objs_to_save:
                 session.add(obj_to_save)
 
-            session.commit()
+            await session.commit()
 
-            for obj_to_save in objs_to_save:
-                session.refresh(obj_to_save)
+            await asyncio.gather(*[session.refresh(new_obj) for new_obj in objs_to_save])
 
-            return objs_to_save
+            return list(objs_to_save)
 
     async def delete(self, obj: SQLModel) -> None:
         """
@@ -272,9 +270,9 @@ class Repository(RepositoryABC, ABC):
         :param obj: The Model that will be deleted
         :return: The result of commit
         """
-        with self.session_factory() as session:
-            session.delete(obj)
-            session.commit()
+        async with self.async_session_manager() as session:
+            await session.delete(obj)
+            await session.commit()
 
     async def bulk_delete(self, objs: list[SQLModel]) -> None:
         """
@@ -285,7 +283,6 @@ class Repository(RepositoryABC, ABC):
         if not objs:
             return
 
-        with self.session_factory() as session:
-            for obj in objs:
-                session.delete(obj)
-            session.commit()
+        async with self.async_session_manager() as session:
+            await asyncio.gather(*[session.delete(obj) for obj in objs])
+            await session.commit()

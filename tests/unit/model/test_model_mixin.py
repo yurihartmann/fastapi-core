@@ -2,10 +2,12 @@ import unittest
 from datetime import datetime
 from typing import Optional
 
+from sqlmodel import Field, SQLModel
+
 from fastapi_core.database import Database
+from fastapi_core.database.database import DatabaseRole
 from fastapi_core.model import ModelMixin
 from fastapi_core.repository import Repository
-from sqlmodel import Field, SQLModel
 
 
 class MyModel(ModelMixin, table=True):
@@ -14,12 +16,14 @@ class MyModel(ModelMixin, table=True):
 
 
 class TestModelBase(unittest.IsolatedAsyncioTestCase):
-    def setUp(self) -> None:
-        self.database = Database(db_url="sqlite://")
+    async def asyncSetUp(self) -> None:
+        self.database = Database(db_url="sqlite+aiosqlite:///./test.db")
 
-        SQLModel.metadata.create_all(bind=self.database.get_master_session().bind)
+        async with self.database._connections[DatabaseRole.MASTER].begin() as conn:
+            await conn.run_sync(SQLModel.metadata.drop_all)
+            await conn.run_sync(SQLModel.metadata.create_all)
 
-        self.repo = Repository(session_factory=self.database.get_session_factory, model=MyModel)
+        self.repo = Repository(async_session_manager=self.database.factory_async_session_manager, model=MyModel)
 
     async def test_model_created(self):
         # Arrange
@@ -30,7 +34,7 @@ class TestModelBase(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(obj.name, "test")
         self.assertIsInstance(obj.created_at, datetime)
         self.assertIsNone(obj.updated_at)
-        self.assertIsNone(obj.delete_at)
+        self.assertIsNone(obj.deleted_at)
 
     async def test_model_updated(self):
         # Arrange
@@ -43,7 +47,7 @@ class TestModelBase(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(obj.created_at, datetime)
         self.assertIsInstance(obj.updated_at, datetime)
         self.assertTrue(obj.created_at < obj.updated_at)
-        self.assertIsNone(obj.delete_at)
+        self.assertIsNone(obj.deleted_at)
 
     async def test_model_soft_delete(self):
         # Arrange
@@ -58,7 +62,7 @@ class TestModelBase(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(obj.created_at, datetime)
         self.assertIsInstance(obj.updated_at, datetime)
         self.assertTrue(obj.created_at < obj.updated_at)
-        self.assertIsInstance(obj.delete_at, datetime)
+        self.assertIsInstance(obj.deleted_at, datetime)
 
         # Act
         obj.undo_soft_delete()
@@ -69,7 +73,7 @@ class TestModelBase(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(obj.created_at, datetime)
         self.assertIsInstance(obj.updated_at, datetime)
         self.assertTrue(obj.created_at < obj.updated_at)
-        self.assertIsNone(obj.delete_at)
+        self.assertIsNone(obj.deleted_at)
 
     async def test_model_update_values(self):
         # Arrange

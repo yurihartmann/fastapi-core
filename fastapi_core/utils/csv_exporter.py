@@ -12,7 +12,7 @@ class ModelExportValidationError(Exception):
 class CSVExporter:
     __NEW_LINE = "\n"
 
-    def __init__(self, model: type[BaseModel], separator: str = ";"):
+    def __init__(self, model: type[BaseModel], separator: str = ","):
         self._MODEL = model
         self._sep = separator
 

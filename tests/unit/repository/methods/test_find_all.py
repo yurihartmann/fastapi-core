@@ -5,8 +5,8 @@ from tests.unit.repository.test_repository import TestRepository
 class TestFindAll(TestRepository):
     async def test_find_all_by_id(self):
         # Arrange
-        self.create_hero_with_powers(n_powers=2)
-        self.create_heroes(4)
+        await self.create_hero_with_powers(n_powers=2)
+        await self.create_heroes(4)
 
         # Act
         heroes = await self.repo.find_all(filters={"id": 1}, relationship_to_load=["powers"])
@@ -21,7 +21,7 @@ class TestFindAll(TestRepository):
 
     async def test_find_all_without_filter(self):
         # Arrange
-        self.create_heroes(5)
+        await self.create_heroes(5)
 
         # Act
         heroes = await self.repo.find_all()
@@ -41,7 +41,7 @@ class TestFindAll(TestRepository):
 
     async def test_find_all_by_id_with_desc(self):
         # Arrange
-        self.create_heroes(3)
+        await self.create_heroes(3)
 
         # Act
         heroes = await self.repo.find_all(desc=True, order_by="id")
