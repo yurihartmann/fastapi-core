@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "fastapi-core"
-version = "0.0.1"
+version = "1.0.0"
 description = "Reusable core, repositories and utilities for FastAPI in Ecred Platform"
 authors = ["yuri hartmann <yurihartmann@icloud.com>"]
 classifiers = [
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.10',
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.10',
 ]
 
 [tool.poetry.dependencies]
@@ -15,30 +15,33 @@ classifiers = [
 python = "^3.10"
 
 # Dependencies required
-fastapi = "0.100.*"
+fastapi = "^0.101.1"
+fastapi-pagination = "^0.12.9"
 asyncio = "3.4.*"
 starlette-context = "0.3.*"
-greenlet = { version = "^2.0.2", optional = true }
-psycopg2-binary = { version = "^2.9.6", optional = true }
+loguru = "^0.7.0"
 
+# Render description
+jinja2 = "^3.1.2"
 
 # HTTP Clients
 httpx = "0.24.*"
 
-# Drivers
-redis = { version = "4.6.*", optional = true }
-
 # ORM
-alembic = { version = "1.11.*"}
-sqlmodel = { version = "0.0.8" }
+alembic = { version = "1.11.*", optional = true }
+sqlmodel = { version = "0.0.8", optional = true }
 
 # Async Database
-fastapi-pagination = "^0.12.6"
-dependency-injector = "^4.41.0"
-loguru = "^0.7.0"
+asyncpg = { version = "^0.27.0", optional = true }
+greenlet = { version = "^2.0.2", optional = true }
+psycopg2-binary = { version = "^2.9.6", optional = true }
+
+# Redis
+redis = { version = "^5.0.0", optional = true }
+
 
 [tool.poetry.extras]
-database = ["psycopg2-binary", "greenlet", "alembic", "sqlmodel"]
+database = ["asyncpg", "psycopg2-binary", "greenlet", "alembic", "sqlmodel"]
 redis = ["redis"]
 
 
@@ -53,25 +56,26 @@ mkdocs-material = "*"
 #fakeredis = "*"
 coverage-badge = "*"
 pre-commit = "*"
-#aiosqlite = "^0.18.0"
 ruff = "^0.0.280"
+black = "^23.7.0"
+aiosqlite = "^0.19.0"
 
 [tool.ruff]
 fix = true
 line-length = 120
 src = ["fastapi_core", "tests"]
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "C",  # flake8-comprehensions
-    "B",  # flake8-bugbear
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "I", # isort
+    "C", # flake8-comprehensions
+    "B", # flake8-bugbear
 ]
 ignore = [
-    "E501",  # line too long, handled by black
-    "B008",  # do not perform function calls in argument defaults
-    "C901",  # too complex
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
+    "C901", # too complex
 ]
 
 [tool.ruff.per-file-ignores]
@@ -80,9 +84,9 @@ ignore = [
 [tool.black]
 line-length = 120
 
-[tool.pytest.ini_options]
-addopts = "-p no:warnings --cov=fastapi_core/ --cov-report=term --cov-report=html"
-testpaths = ['tests']
+#[tool.pytest.ini_options]
+#addopts = "-p no:warnings --cov=fastapi_core/ --cov-report=term --cov-report=html"
+#testpaths = ['tests']
 
 [tool.coverage.run]
 omit = ['*/__init__.py', 'exceptions.py', 'app_settings.py']

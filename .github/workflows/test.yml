@@ -29,7 +29,7 @@ jobs:
         run: pip install poetry
 
       - name: Install Dependencies
-        run: poetry config virtualenvs.create false && poetry install
+        run: poetry config virtualenvs.create false && poetry install -E database -E redis
 
       - name: Test
         run: pytest

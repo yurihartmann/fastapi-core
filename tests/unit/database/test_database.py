@@ -1,60 +1,56 @@
 import unittest
-from unittest.mock import Mock
+from unittest.mock import patch, Mock
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_core.database import Database
-from fastapi_core.database.database import DatabaseRole
-from sqlmodel import Session
 
 
 class TestDatabase(unittest.IsolatedAsyncioTestCase):
     async def test__str__(self):
         # Arrange
-        db = Database(db_url="sqlite://", db_url_read_only="sqlite://")
+        db = Database(db_url="sqlite+aiosqlite://", db_url_read_only="sqlite+aiosqlite://")
 
         # Act and Assert
         self.assertEqual(str(db), "Database")
 
     async def test_get_session(self):
         # Arrange
-        db_full = Database(db_url="sqlite://", db_url_read_only="sqlite://")
+        db_full = Database(db_url="sqlite+aiosqlite://", db_url_read_only="sqlite+aiosqlite://")
 
         # Act and Assert
-        self.assertIsInstance(db_full.get_master_session(), Session)
-        self.assertEqual(db_full.get_master_session(), db_full._connections[DatabaseRole.MASTER])
-        self.assertIsInstance(db_full.get_read_only_session(), Session)
-        self.assertEqual(db_full.get_read_only_session(), db_full._connections[DatabaseRole.REAL_ONLY])
+        self.assertIsInstance(db_full.get_master_session(), AsyncSession)
+        self.assertIsInstance(db_full.get_read_only_session(), AsyncSession)
 
     async def test_get_session_factory_with_only_master(self):
         # Arrange
-        db_master = Database(db_url="sqlite://")
+        db_master = Database(db_url="sqlite+aiosqlite://")
 
         # Act and Assert
-        with db_master.get_session_factory() as session:
-            self.assertIsInstance(session, Session)
-            self.assertEqual(session, db_master._connections[DatabaseRole.MASTER])
+        async with db_master.factory_async_session_manager() as session:
+            self.assertIsInstance(session, AsyncSession)
 
     async def test_get_session_factory_with_master_and_read_only(self):
         # Arrange
-        db_full = Database(db_url="sqlite://", db_url_read_only="sqlite://")
+        db_full = Database(db_url="sqlite+aiosqlite://", db_url_read_only="sqlite+aiosqlite://")
 
         # Act and Assert
-        with db_full.get_session_factory() as session:
-            self.assertIsInstance(session, Session)
-            self.assertEqual(session, db_full._connections[DatabaseRole.MASTER])
+        async with db_full.factory_async_session_manager() as session:
+            self.assertIsInstance(session, AsyncSession)
 
-        with db_full.get_session_factory(read_only=True) as session:
-            self.assertIsInstance(session, Session)
-            self.assertEqual(session, db_full._connections[DatabaseRole.REAL_ONLY])
+        async with db_full.factory_async_session_manager(read_only=True) as session:
+            self.assertIsInstance(session, AsyncSession)
 
-    async def test_get_session_factory_with_error(self):
+    @patch("fastapi_core.database.database.AsyncSession")
+    async def test_get_session_factory_with_error(self, async_session_class_mock):
         # Arrange
-        db_full = Database(db_url="sqlite://")
-        session_mock = Mock()
-        db_full._connections[DatabaseRole.MASTER] = session_mock
-
+        db_full = Database(db_url="sqlite+aiosqlite://")
+        async_session = Mock()
+        async_session_class_mock.return_value = async_session
         # Act and Assert
         with self.assertRaises(Exception) as _:
-            with db_full.get_session_factory():
+            async with db_full.factory_async_session_manager() as session:
+                await session.delete()
                 raise Exception
 
-        session_mock.rollback.assert_called_once_with()
+        async_session.rollback.assert_called_once_with()
