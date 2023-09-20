@@ -20,12 +20,12 @@
 
 [//]: # (**Documentation**: <a href="https://fastapi.tiangolo.com" target="_blank">https://fastapi.tiangolo.com</a>)
 
-**Source Code
-**: <a href="https://github.com/yurihartmann/fastapi-core" target="_blank">https://github.com/yurihartmann/fastapi-core </a>
+**💻 Source Code**:
+<a href="https://github.com/yurihartmann/fastapi-core" target="_blank">https://github.com/yurihartmann/fastapi-core </a>
 
 ---
 
-**Libs Used:**
+**📘 Libs Used:**
 
 **FastApi**: <a href="https://fastapi.tiangolo.com" target="_blank">https://fastapi.tiangolo.com</a>
 
@@ -46,9 +46,11 @@ The key features are:
 * **Buckets**: Abstract buckets and implement for use
 * **Logger**: Logger simple by default
 
-## How use
+## ⚙️ How use
 
-To see how use and example of service using FastApi Core go to this repository:
+To install: `pip install fastapi-core`
+
+To see how use and example of service using FastAPI Core go to this repository:
 
 **Fast Food API**:
 <a href="https://github.com/yurihartmann/fast-food-api" target="_blank">https://github.com/yurihartmann/fast-food-api </a>
