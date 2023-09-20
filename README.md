@@ -50,5 +50,5 @@ The key features are:
 
 To see how use and example of service using FastApi Core go to this repository:
 
-**Fast Food API
-**: <a href="https://github.com/yurihartmann/fast-food-api" target="_blank">https://github.com/yurihartmann/fast-food-api </a>
+**Fast Food API**:
+<a href="https://github.com/yurihartmann/fast-food-api" target="_blank">https://github.com/yurihartmann/fast-food-api </a>
