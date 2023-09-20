@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastapi-core"
-version = "1.0.0"
+version = "1.0.1"
 description = "Reusable core, repositories and utilities for FastAPI in Ecred Platform"
 authors = ["yuri hartmann <yurihartmann@icloud.com>"]
 classifiers = [
