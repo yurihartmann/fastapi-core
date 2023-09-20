@@ -7,7 +7,7 @@ from tests.unit.repository.test_repository import TestRepository
 class TestFindPaginated(TestRepository):
     async def test_find_paginated_should_be_return_pagination_result(self):
         # Arrange
-        self.create_heroes(10)
+        await self.create_heroes(10)
 
         # Act
         pagination_result = await self.repo.find_paginated(params=Params(page=1, size=3))
@@ -21,8 +21,8 @@ class TestFindPaginated(TestRepository):
 
     async def test_find_paginated_with_relationship_to_load_should_be_return_pagination_result(self):
         # Arrange
-        self.create_heroes(9)
-        self.create_hero_with_powers(n_powers=2)
+        await self.create_heroes(9)
+        await self.create_hero_with_powers(n_powers=2)
 
         # Act
         pagination_result = await self.repo.find_paginated(
@@ -40,7 +40,7 @@ class TestFindPaginated(TestRepository):
 
     async def test_find_paginated_should_be_return_pagination_result_with_desc(self):
         # Arrange
-        self.create_heroes(10)
+        await self.create_heroes(10)
 
         # Act
         pagination_result = await self.repo.find_paginated(params=Params(page=1, size=3), desc=True, order_by="id")
@@ -54,7 +54,7 @@ class TestFindPaginated(TestRepository):
 
     async def test_find_paginated_should_be_return_pagination_result_with_offset(self):
         # Arrange
-        self.create_heroes(6)
+        await self.create_heroes(6)
 
         # Act
         pagination_result = await self.repo.find_paginated(params=Params(page=2, size=3))
@@ -68,7 +68,7 @@ class TestFindPaginated(TestRepository):
 
     async def test_find_paginated_should_be_raise_params_value_error(self):
         # Arrange
-        self.create_heroes(6)
+        await self.create_heroes(6)
 
         # Act and Assert
         with self.assertRaises(ValueError):

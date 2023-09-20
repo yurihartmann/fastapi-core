@@ -1,11 +1,9 @@
 import unittest
-from unittest.mock import Mock
+from unittest.mock import patch, Mock
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_core.database import Database
-from fastapi_core.database.database import DatabaseRole
-from sqlmodel import Session
 
 
 class TestDatabase(unittest.IsolatedAsyncioTestCase):
@@ -29,7 +27,7 @@ class TestDatabase(unittest.IsolatedAsyncioTestCase):
         db_master = Database(db_url="sqlite+aiosqlite://")
 
         # Act and Assert
-        async with db_master.get_async_session_factory() as session:
+        async with db_master.factory_async_session_manager() as session:
             self.assertIsInstance(session, AsyncSession)
 
     async def test_get_session_factory_with_master_and_read_only(self):
@@ -37,24 +35,22 @@ class TestDatabase(unittest.IsolatedAsyncioTestCase):
         db_full = Database(db_url="sqlite+aiosqlite://", db_url_read_only="sqlite+aiosqlite://")
 
         # Act and Assert
-        with db_full.get_async_session_factory() as session:
-            self.assertIsInstance(session, Session)
-            self.assertEqual(session, db_full._connections[DatabaseRole.MASTER])
+        async with db_full.factory_async_session_manager() as session:
+            self.assertIsInstance(session, AsyncSession)
 
-        with db_full.get_async_session_factory(read_only=True) as session:
-            self.assertIsInstance(session, Session)
-            self.assertEqual(session, db_full._connections[DatabaseRole.REAL_ONLY])
+        async with db_full.factory_async_session_manager(read_only=True) as session:
+            self.assertIsInstance(session, AsyncSession)
 
-    async def test_get_session_factory_with_error(self):
+    @patch("fastapi_core.database.database.AsyncSession")
+    async def test_get_session_factory_with_error(self, async_session_class_mock):
         # Arrange
         db_full = Database(db_url="sqlite+aiosqlite://")
-        session_mock = Mock()
-        db_full._connections[DatabaseRole.MASTER] = session_mock
-
+        async_session = Mock()
+        async_session_class_mock.return_value = async_session
         # Act and Assert
         with self.assertRaises(Exception) as _:
             async with db_full.factory_async_session_manager() as session:
                 await session.delete()
                 raise Exception
 
-        session_mock.rollback.assert_called_once_with()
+        async_session.rollback.assert_called_once_with()
