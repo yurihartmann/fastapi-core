@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastapi-core"
-version = "1.0.1"
+version = "1.0.2"
 description = "Reusable core, repositories and utilities for FastAPI in Ecred Platform"
 authors = ["yuri hartmann <yurihartmann@icloud.com>"]
 classifiers = [
@@ -17,7 +17,6 @@ python = "^3.10"
 # Dependencies required
 fastapi = "^0.101.1"
 fastapi-pagination = "^0.12.9"
-asyncio = "3.4.*"
 starlette-context = "0.3.*"
 loguru = "^0.7.0"
 
